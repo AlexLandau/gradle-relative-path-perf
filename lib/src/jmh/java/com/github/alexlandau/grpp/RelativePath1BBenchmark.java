@@ -4,7 +4,7 @@ import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.infra.Blackhole;
 
 public class RelativePath1BBenchmark {
-    @Benchmark
+    // @Benchmark
     public void testRelativePath1B(Blackhole bh) {
         RelativePath1B root1 = new RelativePath1B(false, "some", "dir");
         bh.consume(new RelativePath1B(false, root1, "another"));
