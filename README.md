@@ -1,5 +1,8 @@
 # gradle-relative-path-perf
 
+How to run: Go through the benchmarks in `lib/src/jmh` and comment or uncomment the `@Benchmark` annotations depending on which ones
+you want to run (each one takes 15-20 minutes, IIRC), then run `./gradlew jmh`.
+
 * RelativePath1: The implementation of RelativePath prior to adding canonicalization in https://github.com/gradle/gradle/pull/24943
   * RelativePath1B: As in RelativePath1, but manually inline the functions calling `System.arraycopy`
   * RelativePath1C: As in RelativePath1, but copy arrays with `for` loops rather than `System.arraycopy`
