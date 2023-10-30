@@ -45,7 +45,7 @@ public class RelativePath1 implements Serializable, Comparable<RelativePath1>, C
         this(endsWithFile, null, segments);
     }
 
-    private RelativePath1(boolean endsWithFile, @Nullable RelativePath1 parentPath, String... childSegments) {
+    RelativePath1(boolean endsWithFile, @Nullable RelativePath1 parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
         int targetOffsetForChildSegments;
         if (parentPath != null) {

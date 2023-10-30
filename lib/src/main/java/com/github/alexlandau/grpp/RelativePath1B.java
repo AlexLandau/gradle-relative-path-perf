@@ -15,7 +15,6 @@
  */
 package com.github.alexlandau.grpp;
 
-import com.google.common.collect.Iterables;
 // import org.gradle.internal.file.FilePathUtil;
 
 import javax.annotation.Nullable;
@@ -30,57 +29,37 @@ import java.util.ListIterator;
  * <p>Represents a relative path from some base directory to a file.  Used in file copying to represent both a source
  * and target file path when copying files.</p>
  *
- * <p>{@code RelativePath2} instances are immutable.</p>
+ * <p>{@code RelativePath1B} instances are immutable.</p>
  */
-public class RelativePath2 implements Serializable, Comparable<RelativePath2>, CharSequence {
-    public static final RelativePath2 EMPTY_ROOT = new RelativePath2(false);
+public class RelativePath1B implements Serializable, Comparable<RelativePath1B>, CharSequence {
+    public static final RelativePath1B EMPTY_ROOT = new RelativePath1B(false);
     private final boolean endsWithFile;
     private final String[] segments;
 
     /**
-     * Creates a {@code RelativePath2}.
+     * Creates a {@code RelativePath1B}.
      *
      * @param endsWithFile - if true, the path ends with a file, otherwise a directory
      */
-    public RelativePath2(boolean endsWithFile, String... segments) {
+    public RelativePath1B(boolean endsWithFile, String... segments) {
         this(endsWithFile, null, segments);
     }
 
-    RelativePath2(boolean endsWithFile, @Nullable RelativePath2 parentPath, String... childSegments) {
+    RelativePath1B(boolean endsWithFile, @Nullable RelativePath1B parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
-        final int expectedLength;
-        final Iterable<String> sourceSegments;
+        int targetOffsetForChildSegments;
         if (parentPath != null) {
-            expectedLength = parentPath.segments.length + childSegments.length;
-            sourceSegments = Iterables.concat(Arrays.asList(parentPath.segments),
-                Arrays.asList(childSegments));
+            String[] sourceSegments = parentPath.getSegments();
+            segments = new String[sourceSegments.length + childSegments.length];
+            // copySegments(segments, sourceSegments, sourceSegments.length);
+            System.arraycopy(sourceSegments, 0, segments, 0, sourceSegments.length);
+            targetOffsetForChildSegments = sourceSegments.length;
         } else {
-            expectedLength = childSegments.length;
-            sourceSegments = Arrays.asList(childSegments);
+            segments = new String[childSegments.length];
+            targetOffsetForChildSegments = 0;
         }
-        String[] newSegments = new String[expectedLength];
-        int nextIndex = 0;
-        for (String segment : sourceSegments) {
-            if (segment.equals(".")) {
-                continue;
-            }
-            if (segment.equals("..")) {
-                if (nextIndex == 0 || newSegments[nextIndex - 1].equals("..")) {
-                    newSegments[nextIndex] = "..";
-                    nextIndex++;
-                } else {
-                    nextIndex--;
-                }
-                continue;
-            }
-            newSegments[nextIndex] = segment;
-            nextIndex++;
-        }
-        if (nextIndex < newSegments.length) {
-            // Truncate the array to the filled portion
-            newSegments = Arrays.copyOf(newSegments, nextIndex);
-        }
-        this.segments = newSegments;
+        // copyAndInternSegments(segments, targetOffsetForChildSegments, childSegments);
+        System.arraycopy(childSegments, 0, segments, targetOffsetForChildSegments, childSegments.length);
     }
 
     private static void copySegments(String[] target, String[] source) {
@@ -89,6 +68,10 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
 
     private static void copySegments(String[] target, String[] source, int length) {
         System.arraycopy(source, 0, target, 0, length);
+    }
+
+    private static void copyAndInternSegments(String[] target, int targetOffset, String[] source) {
+        System.arraycopy(source, 0, target, targetOffset, source.length);
     }
 
     public String[] getSegments() {
@@ -178,7 +161,7 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
             return false;
         }
 
-        RelativePath2 that = (RelativePath2) o;
+        RelativePath1B that = (RelativePath1B) o;
 
         if (endsWithFile != that.endsWithFile) {
             return false;
@@ -203,7 +186,7 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
      *
      * @return The parent of this path, or null if this is the root path.
      */
-    public RelativePath2 getParent() {
+    public RelativePath1B getParent() {
         switch (segments.length) {
             case 0:
                 return null;
@@ -212,17 +195,17 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
             default:
                 String[] parentSegments = new String[segments.length - 1];
                 copySegments(parentSegments, segments);
-                return new RelativePath2(false, parentSegments);
+                return new RelativePath1B(false, parentSegments);
         }
     }
 
-    public static RelativePath2 parse(boolean isFile, String path) {
+    public static RelativePath1B parse(boolean isFile, String path) {
         return parse(isFile, null, path);
     }
 
-    public static RelativePath2 parse(boolean isFile, @Nullable RelativePath2 parent, String path) {
+    public static RelativePath1B parse(boolean isFile, @Nullable RelativePath1B parent, String path) {
         String[] names = FilePathUtil.getPathSegments(path);
-        return new RelativePath2(isFile, parent, names);
+        return new RelativePath1B(isFile, parent, names);
     }
 
     /**
@@ -231,11 +214,11 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
      * @param name The name.
      * @return The path.
      */
-    public RelativePath2 replaceLastName(String name) {
+    public RelativePath1B replaceLastName(String name) {
         String[] newSegments = new String[segments.length];
         copySegments(newSegments, segments, segments.length - 1);
         newSegments[segments.length - 1] = name;
-        return new RelativePath2(endsWithFile, newSegments);
+        return new RelativePath1B(endsWithFile, newSegments);
     }
 
     /**
@@ -244,8 +227,8 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
      * @param other The path to append
      * @return The new path
      */
-    public RelativePath2 append(RelativePath2 other) {
-        return new RelativePath2(other.endsWithFile, this, other.segments);
+    public RelativePath1B append(RelativePath1B other) {
+        return new RelativePath1B(other.endsWithFile, this, other.segments);
     }
 
     /**
@@ -254,7 +237,7 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
      * @param other The path to append
      * @return The new path
      */
-    public RelativePath2 plus(RelativePath2 other) {
+    public RelativePath1B plus(RelativePath1B other) {
         return append(other);
     }
 
@@ -265,8 +248,8 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
      * @param endsWithFile when true, the new path refers to a file.
      * @return The new path.
      */
-    public RelativePath2 append(boolean endsWithFile, String... segments) {
-        return new RelativePath2(endsWithFile, this, segments);
+    public RelativePath1B append(boolean endsWithFile, String... segments) {
+        return new RelativePath1B(endsWithFile, this, segments);
     }
 
     /**
@@ -275,12 +258,12 @@ public class RelativePath2 implements Serializable, Comparable<RelativePath2>, C
      * @param segments The names to prepend
      * @return The new path.
      */
-    public RelativePath2 prepend(String... segments) {
-        return new RelativePath2(false, segments).append(this);
+    public RelativePath1B prepend(String... segments) {
+        return new RelativePath1B(false, segments).append(this);
     }
 
     @Override
-    public int compareTo(RelativePath2 o) {
+    public int compareTo(RelativePath1B o) {
         int len1 = segments.length;
         int len2 = o.segments.length;
 

@@ -1,0 +1,4 @@
+Benchmark                                  Mode  Cnt         Score        Error  Units
+RelativePath1Benchmark.testRelativePath1  thrpt   25   9877374.230 ± 424448.679  ops/s
+RelativePath2Benchmark.testRelativePath2  thrpt   25   2928569.622 ± 107965.917  ops/s
+RelativePath3Benchmark.testRelativePath3  thrpt   25  14459379.866 ± 590525.244  ops/s
